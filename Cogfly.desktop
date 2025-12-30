@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Cogfly
+Exec=bin/Cogfly
+Icon=icon
+Type=Application
+Categories=Utility;
