@@ -133,7 +133,7 @@ jobs:
             --vendor "Ambershadow" \
             --icon ./icons/icon.png \
             --app-version 1.0 \
-            --dest output/
+            --dest output/appimage
 
       - name: Prepare AppDir
         if: runner.os == 'Linux' && matrix.arch == 'amd64'
