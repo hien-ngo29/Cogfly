@@ -16,13 +16,8 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
-          distribution: temurin
-          java-version: 17
-
-      - name: Install build tools
-        run: |
-          brew update
-          brew install gradle 
+          distribution: zulu
+          java-version: 25
 
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
