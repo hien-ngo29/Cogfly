@@ -124,8 +124,8 @@ jobs:
       - name: Prepare AppDir
         if: runner.os == 'Linux' && matrix.arch == 'amd64'
         run: |
-          cp ./icons/icon.png output/appimage/Cogfly_amd64/
-          cp ./Cogfly.desktop output/appimage/Cogfly_amd64/
+          cp ./icons/icon.png output/appimage/Cogfly/
+          cp ./Cogfly.desktop output/appimage/Cogfly/
 
       - name: Install AppImageTool
         if: runner.os == 'Linux' && matrix.arch == 'amd64'
@@ -138,7 +138,7 @@ jobs:
         if: runner.os == 'Linux' && matrix.arch == 'amd64'
         run: |
           export APPIMAGE_EXTRACT_AND_RUN=1
-          ./appimagetool output/appimage/Cogfly_amd64 output/${{ runner.os }}-${{ matrix.arch }}/Cogfly_amd64.AppImage
+          ./appimagetool output/appimage/Cogfly output/${{ runner.os }}-${{ matrix.arch }}/Cogfly.AppImage
 
       - uses: actions/upload-artifact@v4
         with:
