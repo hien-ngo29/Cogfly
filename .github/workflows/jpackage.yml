@@ -107,7 +107,9 @@ jobs:
             --icon ./icons/icon.png \
             --app-version 1.0 \
             --dest output/${{ runner.os }}-${{ matrix.arch }} \
-      - name: Build app-image folder
+          
+
+      - name: Build APPIMAGE
         if: runner.os == 'Linux' && matrix.arch == 'amd64'
         run: |
           mkdir -p output/appimage
@@ -120,23 +122,11 @@ jobs:
             --icon ./icons/icon.png \
             --app-version 1.0 \
             --dest output/appimage
-
-      - name: Prepare AppDir
-        if: runner.os == 'Linux' && matrix.arch == 'amd64'
-        run: |
           cp ./icons/icon.png output/appimage/Cogfly/
           cp ./Cogfly.desktop output/appimage/Cogfly/
-
-      - name: Install AppImageTool
-        if: runner.os == 'Linux' && matrix.arch == 'amd64'
-        run: |
           sudo apt update
           wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
           chmod +x appimagetool
-
-      - name: Build final .AppImage
-        if: runner.os == 'Linux' && matrix.arch == 'amd64'
-        run: |
           export APPIMAGE_EXTRACT_AND_RUN=1
           ./appimagetool output/appimage/Cogfly output/${{ runner.os }}-${{ matrix.arch }}/Cogfly.AppImage
 
