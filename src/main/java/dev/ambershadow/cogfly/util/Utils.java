@@ -1,6 +1,7 @@
 package dev.ambershadow.cogfly.util;
 
 import com.sun.jna.Pointer;
+import com.sun.jna.WString;
 import dev.ambershadow.cogfly.Cogfly;
 import dev.ambershadow.cogfly.loader.ModData;
 
@@ -90,11 +91,10 @@ public class Utils {
                 readValue(pb).ifPresent(callback);
             }
             case WINDOWS -> {
-                Pointer ptr = Cogfly.FOLDER_PICKER.pickFolder();
-                String path;
-                if (ptr != null && !(path = ptr.getString(0)).isEmpty())
-                    callback.accept(Paths.get(path));
-
+                WString path = Cogfly.FOLDER_PICKER.pickFolder();
+                if (path != null && !path.toString().isEmpty()) {
+                    callback.accept(Paths.get(path.toString()));
+                }
             }
             case LINUX -> {
                 Optional<Path> path = readValue(new ProcessBuilder(
@@ -110,7 +110,11 @@ public class Utils {
                 path.ifPresentOrElse(
                         callback,
                         () -> {
-                            // JDialog
+                            String input = JOptionPane.showInputDialog(FrameManager.getOrCreate().frame,
+                                    "Please manually enter a folder path. It is highly recommended that you install either Zenity or KDialog for a proper display."
+                            );
+                            Path p = Paths.get(input);
+                            callback.accept(p.toFile().isDirectory() ? p : p.getParent());
                         }
                 );
             }
@@ -121,10 +125,8 @@ public class Utils {
         switch (OperatingSystem.current()){
             case MAC -> {
                 StringJoiner filterJoiner = new StringJoiner(",");
-                for (String extension : extensions) {
-
+                for (String extension : extensions)
                     filterJoiner.add("\"" + extension + "\"");
-                }
                 String appleScriptCommand = "POSIX path of (choose file of type {" + filterJoiner + "})";
                 ProcessBuilder pb = new ProcessBuilder(
                         "osascript", "-e", appleScriptCommand
@@ -168,12 +170,27 @@ public class Utils {
                 }
 
                 if (path.isEmpty()) {
-                    // JDialog
+                    String val = manualFilePath(false, extensions);
+                    callback.accept(Paths.get(val));
                 }
 
                 path.ifPresent(callback);
             }
         }
+    }
+
+    private static String manualFilePath(boolean invalid, String... extensions){
+        StringJoiner filterJoiner = new StringJoiner(",");
+        for (String extension : extensions)
+            filterJoiner.add("\"" + extension + "\"");
+        String input = JOptionPane.showInputDialog(FrameManager.getOrCreate().frame,
+                (invalid ? "Invalid extension. " : "") + "Please manually enter a file path. Allowed extensions: " + filterJoiner + ". It is highly recommended that you install either Zenity or KDialog for a proper display."
+        );
+        for (String val : extensions){
+            if (input.endsWith("." + val))
+                return input;
+        }
+        return manualFilePath(true, extensions);
     }
 
     private static Optional<Path> readValue(ProcessBuilder pb) {

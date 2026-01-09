@@ -6,15 +6,20 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import dev.ambershadow.cogfly.Cogfly;
+import dev.ambershadow.cogfly.asset.Assets;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 public class ModFetcher {
@@ -27,8 +32,32 @@ public class ModFetcher {
              GZIPInputStream gzip1 = new GZIPInputStream(URL.of(URI.create(new String(gzip.readAllBytes()).split("\"")[1]), null).openStream())
         ) {
             content = new String(gzip1.readAllBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
+        }
+        catch (UnknownHostException unknown){
+            JDialog dialog = new JDialog((Dialog)null, "No internet?");
+            dialog.setIconImage(Assets.icon.getAsImage());
+            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            dialog.setLocationRelativeTo(null);
+            JPanel panel = new JPanel(new BorderLayout());
+            panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            JLabel a = new JLabel("An UnknownHostException was thrown during mod discovery.");
+            JLabel b = new JLabel("Please check your internet connection and try again.");
+            a.setHorizontalAlignment(SwingConstants.CENTER);
+            b.setHorizontalAlignment(SwingConstants.CENTER);
+            panel.add(a, BorderLayout.NORTH);
+            panel.add(b, BorderLayout.CENTER);
+            JButton button = new JButton("Exit");
+            dialog.add(button);
+            button.addActionListener(_ -> System.exit(68));
+            dialog.add(panel, BorderLayout.NORTH);
+
+            dialog.setResizable(false);
+            dialog.setSize(350, 100);
+            dialog.setVisible(true);
+
+            throw new RuntimeException(unknown);
+        }
+        catch (IOException e) {
             return fallbackList;
         }
 
@@ -67,8 +96,6 @@ public class ModFetcher {
                            return;
                         dependencies.add(dep.getAsString());
                     });
-
-                String version = get(object, "version_number");
 
                 for (ModData mod : Cogfly.mods) {
                     if (installedMods.contains(mod))
