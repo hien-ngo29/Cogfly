@@ -67,7 +67,7 @@ public class Cogfly {
         localDataPath = dirs.getUserDataDir("Cogfly", null, "");
         roamingDataPath = dirs.getUserDataDir("Cogfly", null, "", true);
         dataJson = new File(localDataPath + "/settings.json");
-        //noinspection ResultOfMethodCallIgnored
+        //noinspection ResultOfMethodCallIgnored /
         dataJson.getParentFile().mkdirs();
         if (!dataJson.exists()) {
             try {
