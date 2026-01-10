@@ -145,13 +145,5 @@ jobs:
           ZIP_NAME="${ARTIFACT_NAME}.zip"
 
           echo "Zipping $OUTPUT_DIR → $ZIP_NAME"
-          echo "$RUNNER_OS"
-          
-          echo "Uploading $ZIP_NAME"
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
-            powershell -Command "\$OutputDir = '${OUTPUT_DIR//\//\\}' \$ZipName = '${ZIP_NAME}' Compress-Archive -Path \"\$OutputDir\*\" -DestinationPath \$ZipName -Force"
-          else
-            zip -r "$ZIP_NAME" "$OUTPUT_DIR"
-          fi
-          
+          dotnet Unzipper/Unzipper.dll "$OUTPUT_DIR" "$ZIP_NAME"
           dotnet ArtifactUploader/ArtifactUploader.dll "$ZIP_NAME" "${{ runner.os }}" "${{ matrix.arch }}" "${{ github.sha }}" "${{ github.run_id }}" "${{ secrets.COGFLY_UPLOAD_TOKEN }}"
