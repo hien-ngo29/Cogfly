@@ -152,4 +152,20 @@ public class ModData {
         return !(version.get("version_number").getAsString()
                 .equals(profile.getInstalledVersion(this)));
     }
+
+    @Override
+    public boolean equals(Object o){
+        return o instanceof ModData md &&
+                md.getName().equals(getName())
+                && md.getAuthor().equals(getAuthor())
+                && md.getDescription().equals(getDescription())      && md.getFullName().equals(getFullName())
+                && md.getVersionNumber().equals(getVersionNumber());
+    }
+
+    public boolean equalsIgnoreVersion(ModData md){
+        return md.getName().equals(getName())
+                && md.getAuthor().equals(getAuthor())
+                && md.getDescription().equals(getDescription())
+                && md.getFullName().equals(getFullName());
+    }
 }

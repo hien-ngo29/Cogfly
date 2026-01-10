@@ -106,6 +106,7 @@ public class ProfileManager {
             }
         }
         baseGame = new Profile("Base Game", Paths.get(Cogfly.settings.gamePath), Assets.silksongIcon.getAsIcon());
+        baseGame.installedMods = ModFetcher.getInstalledMods(baseGame.getPluginsPath());
     }
 
     public static void fromFile(Path path, BiConsumer<Profile, ModData[]> outdated){

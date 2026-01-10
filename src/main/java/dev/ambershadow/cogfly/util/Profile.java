@@ -38,15 +38,12 @@ public class Profile {
     }
 
     public void removeMod(ModData mod){
-        ModData m = new ArrayList<>(installedMods).stream().filter(md ->md.getFullName().equals(mod.getFullName()) && md.getDescription().equals(mod.getDescription())
-                && md.getAuthor().equals(mod.getAuthor())).findFirst().orElse(null);
+        ModData m = new ArrayList<>(installedMods).stream().filter(md -> md.equalsIgnoreVersion(mod)).findFirst().orElse(null);
         installedMods.remove(m);
     }
 
     public String getInstalledVersion(ModData mod) {
-        return installedMods.stream().filter(md -> md.getFullName().equals(mod.getFullName()) && md.getDescription().equals(mod.getDescription())
-            && md.getAuthor().equals(mod.getAuthor())
-        ).toList().getFirst().getVersionNumber();
+        return installedMods.stream().filter(md -> md.equalsIgnoreVersion(mod)).toList().getFirst().getVersionNumber();
     }
 
     public Icon getIcon() {
@@ -55,5 +52,12 @@ public class Profile {
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Profile prof &&
+                prof.getPath().equals(path)
+                && prof.getName().equals(name);
     }
 }
