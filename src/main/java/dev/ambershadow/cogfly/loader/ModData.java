@@ -15,18 +15,13 @@ import java.util.Optional;
 
 public class ModData {
 
-    public static ModData getModAtVersion(String fullName, String version){
-        Optional<JsonObject> mod = rawModData.stream()
-                .filter(obj -> obj.get("full_name")
-                        .getAsString().equals(fullName)).findFirst();
-        if (mod.isEmpty())
-            return null;
-        JsonObject parent = mod.get();
+    public static ModData getModAtVersion(JsonObject parent, String version) {
         JsonArray versions = parent.get("versions").getAsJsonArray();
         final JsonObject[] targetVersion = {null};
         for (JsonElement ver : versions) {
             if (ver.getAsJsonObject().get("version_number")
                     .getAsString().equals(version)) {
+
                 targetVersion[0] = ver.getAsJsonObject();
                 break;
             }
@@ -36,11 +31,26 @@ public class ModData {
         return new ModData(parent, targetVersion[0]);
     }
 
+    public static ModData getModAtVersion(String fullName, String version){
+        Optional<JsonObject> mod = rawModData.stream()
+                .filter(obj -> obj.get("full_name")
+                        .getAsString().equals(fullName)).findFirst();
+        return mod.map(jsonObject -> getModAtVersion(jsonObject, version)).orElse(null);
+    }
+
     public static ModData getMod(String fullName){
         return Cogfly.mods.stream().filter(mod -> mod.getFullName().equals(fullName)).findFirst().orElse(null);
     }
+
+    public static ModData getMod(ModData other){
+        return Cogfly.mods.stream().filter(
+                mod -> mod.getFullName().equals(other.getFullName())
+                        && mod.getAuthor().equals(other.getAuthor())
+                        && mod.getDescription().equals(other.getDescription())
+        ).findFirst().orElse(null);
+    }
     static List<JsonObject> rawModData = new ArrayList<>();
-    private final JsonObject rawObj;
+    final JsonObject rawObj;
     private final String name;
     private final String fullName;
     private final String author;
@@ -65,10 +75,8 @@ public class ModData {
         dateCreated = parentObject.get("date_created").getAsString();
         try {
             downloadUrl = URL.of(URI.create(version.get("download_url").getAsString()), null);
-        } catch (MalformedURLException e){
-            downloadUrl = null;
-            e.printStackTrace();
-        }
+        } catch (MalformedURLException ignored){}
+        // thunderstore URLs won't be malformed
         packageUrl = URI.create(parentObject.get("package_url").getAsString());
         String website = version.get("website_url").getAsString();
         websiteUrl = website.isEmpty() ? null : URI.create(website);
@@ -79,13 +87,11 @@ public class ModData {
             this.dependencies.add(dep.getAsString());
         });
         dateModified = version.get("date_created").getAsString();
-        this.versionNumber = version.get("version_number").getAsString();
+        versionNumber = version.get("version_number").getAsString();
         description = version.get("description").getAsString();
 
         parentObject.get("versions").getAsJsonArray()
-        .forEach(v -> {
-            totalDownloads += v.getAsJsonObject().get("downloads").getAsInt();
-        });
+        .forEach(v -> totalDownloads += v.getAsJsonObject().get("downloads").getAsInt());
     }
     public ModData(JsonObject parentObject){
         JsonArray versions = parentObject.get("versions").getAsJsonArray();
@@ -140,10 +146,8 @@ public class ModData {
     public boolean isOutdated(){
         if (!isInstalled())
             return false;
-        return !versionNumber.equals(
-                rawObj.get("versions").getAsJsonArray()
-                        .get(0).getAsJsonObject()
-                        .get("version_number").getAsString()
-        );
+        JsonObject version = rawObj.get("versions").getAsJsonArray().get(0).getAsJsonObject();
+        return !(version.get("version_number").getAsString()
+                .equals(ProfileManager.getCurrentProfile().getInstalledVersion(this)));
     }
 }

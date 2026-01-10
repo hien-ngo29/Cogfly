@@ -1,7 +1,7 @@
 package dev.ambershadow.cogfly.elements.settings;
 
 import com.formdev.flatlaf.intellijthemes.FlatAllIJThemes;
-import dev.ambershadow.cogfly.util.FrameManager;
+import dev.ambershadow.cogfly.elements.SettingsDialog;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,11 +9,22 @@ import java.util.Objects;
 
 public class ThemeListElement extends JPanel {
 
-    private final SettingsPanelElement parent;
-    public ThemeListElement(SettingsPanelElement parent){
-        this.parent = parent;
+    public ThemeListElement(SettingsDialog parent){
         JComboBox<UIManager.LookAndFeelInfo> combo =
                 new JComboBox<>(FlatAllIJThemes.INFOS);
+        setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 0;
+        c.weightx = 0;
+        c.anchor = GridBagConstraints.WEST;
+        c.insets = new Insets(5, 10, 5, 10);
+        add(new JLabel("Theme "), c);
+        c.gridx = 1;
+        c.weightx = 1;
+        c.anchor = GridBagConstraints.EAST;
+        c.fill = GridBagConstraints.NONE;
+        add(combo, c);
 
         combo.setRenderer(new DefaultListCellRenderer() {
             @Override
@@ -28,20 +39,15 @@ public class ThemeListElement extends JPanel {
             }
         });
 
-        combo.addActionListener(e -> {
+        combo.addActionListener(_ -> {
             UIManager.LookAndFeelInfo info =
                     (UIManager.LookAndFeelInfo) combo.getSelectedItem();
             if (info == null)
                 return;
             if (Objects.equals(info.getClassName(), UIManager.getLookAndFeel().getClass().getName()))
                 return;
-            switchTheme(info);
-            parent.updateTheme(info.getClassName());
-            parent.onSettingChanged(true);
+            parent.updateTheme(info);
         });
-
-        add(new JLabel("Theme:"));
-        add(combo);
 
         LookAndFeel currentLaf = UIManager.getLookAndFeel();
         for (int i = 0; i < combo.getItemCount(); i++) {
@@ -49,14 +55,6 @@ public class ThemeListElement extends JPanel {
                 combo.setSelectedIndex(i);
                 break;
             }
-        }
-    }
-    public static void switchTheme(UIManager.LookAndFeelInfo info) {
-        try {
-            UIManager.setLookAndFeel(info.getClassName());
-            SwingUtilities.updateComponentTreeUI(FrameManager.getOrCreate().frame);
-        } catch (Exception ex) {
-            ex.printStackTrace();
         }
     }
 }

@@ -34,7 +34,7 @@ public class ProfileManager {
     }
 
     private static Profile current;
-    public static Profile createProfile(String name, String iconPath){
+    public static void createProfile(String name, String iconPath){
         Path profile = Paths.get(Cogfly.settings.profileSavePath).resolve(name);
         try {
             Files.createDirectories(profile);
@@ -58,17 +58,9 @@ public class ProfileManager {
             // ignore. No icon was specified.
         }
         profiles.add(prof);
-        return prof;
     }
-
-    public static void removeProfile(String name){
-        removeProfile(profiles.stream().filter(p -> p.getName().equals(name)).findFirst().orElse(null));
-    }
-    public static void removeProfile(Profile profile){
-        if (profile == null)
-            return;
-        profiles.remove(profile);
-        try(Stream<Path> stream = Files.walk(profile.getPath())) {
+    private static void deleteFolder(Path path){
+        try(Stream<Path> stream = Files.walk(path)) {
             stream
                     .sorted(Comparator.reverseOrder())
                     .forEach(p -> {
@@ -82,8 +74,15 @@ public class ProfileManager {
             throw new RuntimeException(e);
         }
     }
+    public static void removeProfile(Profile profile){
+        if (profile == null)
+            return;
+        profiles.remove(profile);
+        deleteFolder(profile.getPath());
+    }
 
     public static void loadProfiles() {
+        profiles.clear();
         List<String> paths = new ArrayList<>(Cogfly.settings.profileSources);
         paths.add(Cogfly.settings.profileSavePath);
         for (String m : paths) {
@@ -112,17 +111,9 @@ public class ProfileManager {
         }
         baseGame = new Profile("Base Game", Paths.get(Cogfly.settings.gamePath), Assets.silksongIcon.getAsIcon());
     }
-
-    public static Profile setProfile(String name){
-        Profile profile = profiles.stream().filter(prof -> prof.getName().equals(name)).findFirst().orElse(null);
-        if (profile == null) return null;
-        return setProfile(profile);
-    }
-
-    public static Profile setProfile(Profile profile){
+    public static void setProfile(Profile profile){
         current = profile;
         profile.installedMods = ModFetcher.getInstalledMods(profile.getPluginsPath());
-        return profile;
     }
 
     public static void fromFile(Path path, BiConsumer<Profile, ModData[]> outdated){
@@ -194,16 +185,20 @@ public class ProfileManager {
                 (List<Map<String, Object>>) data.get("mods");
         List<ModData> outdatedMods = new ArrayList<>();
         Profile profile = new Profile(profileName, Paths.get(Cogfly.settings.profileSavePath + "/" + profileName));
-        if (profiles.stream().anyMatch(prof -> prof.getName().equals(profileName))){
+        FrameManager.getOrCreate().setPage(FrameManager.CogflyPage.PROFILES,
+                FrameManager.getOrCreate().profilesPageButton);
+        if (Paths.get(Cogfly.settings.profileSavePath).resolve(profileName).toFile().exists()) {
             int result = JOptionPane.showConfirmDialog(FrameManager.getOrCreate().frame,
-                    "A profile with this name already exists. Would you like to overwrite it?", "Profile already exists.",
+                    "A profile with this name in this location already exists. Would you like to overwrite it?", "Profile already exists.",
                     JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE,
                     null);
             if (result != JOptionPane.YES_OPTION) {
                 return;
             }
-            removeProfile(profileName);
+            deleteFolder(Paths.get(Cogfly.settings.profileSavePath).resolve(profileName));
+            loadProfiles();
         }
+        profiles.add(profile);
         Cogfly.downloadBepInEx(profile.getPath());
         mods.forEach(mod -> {
             String name = mod.get("name").toString();
@@ -219,7 +214,7 @@ public class ProfileManager {
                 if (d.isOutdated()) {
                     outdatedMods.add(d);
                 }
-                Utils.downloadMod(d, profile);
+                Utils.downloadMod(d, profile, false);
             }
         });
 
@@ -233,7 +228,6 @@ public class ProfileManager {
             throw new RuntimeException(e);
         }
         outdated.accept(profile, outdatedMods.toArray(ModData[]::new));
-        profiles.add(profile);
     }
 
     public static void toFile(Profile profile, Path path){

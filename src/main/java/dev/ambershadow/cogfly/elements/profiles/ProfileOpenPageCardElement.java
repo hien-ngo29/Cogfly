@@ -1,6 +1,6 @@
 package dev.ambershadow.cogfly.elements.profiles;
 
-import dev.ambershadow.cogfly.asset.Assets;
+import dev.ambershadow.cogfly.Cogfly;
 import dev.ambershadow.cogfly.elements.ModPanelElement;
 import dev.ambershadow.cogfly.loader.ModData;
 import dev.ambershadow.cogfly.util.*;
@@ -8,6 +8,10 @@ import dev.ambershadow.cogfly.util.*;
 import javax.swing.*;
 import java.awt.*;
 import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class ProfileOpenPageCardElement extends JPanel {
 
@@ -20,12 +24,50 @@ public class ProfileOpenPageCardElement extends JPanel {
         upperPanel.setPreferredSize(new Dimension(getWidth(), 100));
 
         JButton launch = new JButton("Launch");
-        launch.addActionListener(_ -> Utils.launchModdedGame(ProfileManager.getCurrentProfile()));
+        launch.addActionListener(_ -> {
+            List<ModData> outdated = profile.getInstalledMods().stream().filter(ModData::isOutdated).toList();
+            if (!outdated.isEmpty()) {
+                List<Object> msg = new ArrayList<>();
+                msg.add("This profile has outdated mods.");
+                msg.add("");
+                for (ModData modData : outdated) {
+                    msg.add("• " + modData.getName());
+                }
+                msg.add("");
+                msg.add("Would you like to update them?");
+                int result = JOptionPane.showConfirmDialog(
+                        FrameManager.getOrCreate().frame,
+                        msg.toArray(),
+                        "Outdated Mods",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE);
+                if (result == JOptionPane.YES_OPTION) {
+                    List<CompletableFuture<Void>> voids = new ArrayList<>();
+                    for (ModData modData : outdated) {
+                        voids.add(CompletableFuture.runAsync(() -> Utils.downloadLatestMod(
+                                ModData.getMod(modData.getFullName()),
+                                profile,
+                                false
+                        )));
+                    }
+                    CompletableFuture.allOf(voids.toArray(CompletableFuture[]::new)).thenRun(() -> Utils.launchModdedGame(profile)).join();
+                }
+            } else Utils.launchModdedGame(profile);
+        });
 
         updateAll = new JButton("Update All");
         updateAll.setEnabled(false);
-        updateAll.addActionListener(_ -> profile.getInstalledMods().stream().filter(ModData::isOutdated)
-                .forEach(mod -> Utils.downloadMod(mod, profile)));
+        updateAll.addActionListener(_ -> {
+            updateAll.setEnabled(false);
+            for (ModData modData : profile.getInstalledMods()) {
+                if (!modData.isOutdated()) continue;
+                CompletableFuture.runAsync(() -> Utils.downloadLatestMod(
+                        ModData.getMod(modData.getFullName()),
+                        profile,
+                        false
+                ));
+            }
+        });
 
         JButton copyLogToClipboard = new JButton("Copy Log To Clipboard");
         copyLogToClipboard.addActionListener(_ -> {
@@ -33,7 +75,6 @@ public class ProfileOpenPageCardElement extends JPanel {
                 Utils.copyFile(profile.getBepInExPath().resolve("LogOutput.log"));
             }
         });
-        copyLogToClipboard.setIcon(Assets.copy.getAsIcon());
 
         JButton exportAsId = new JButton("Export As Code");
         exportAsId.addActionListener(_ -> {
@@ -63,12 +104,25 @@ public class ProfileOpenPageCardElement extends JPanel {
         JButton openFileLocation = new JButton("Open Profile Folder");
         openFileLocation.addActionListener(_ -> Utils.openProfilePath(profile));
 
+        JButton remove = new JButton("Remove Profile");
+        remove.addActionListener(_ -> {
+            ProfileManager.removeProfile(profile);
+            FrameManager.getOrCreate().setPage(
+                    FrameManager.CogflyPage.PROFILES,
+                    FrameManager.getOrCreate().profilesPageButton
+            );
+        });
+        if (profile.getPath().equals(Paths.get(Cogfly.settings.gamePath))){
+            remove.setEnabled(false);
+        }
+
         upperPanel.add(launch);
         upperPanel.add(updateAll);
         upperPanel.add(copyLogToClipboard);
         upperPanel.add(exportAsId);
         upperPanel.add(exportAsFile);
         upperPanel.add(openFileLocation);
+        upperPanel.add(remove);
         add(upperPanel, BorderLayout.NORTH);
         add(new ModPanelElement(), BorderLayout.CENTER);
     }

@@ -1,21 +1,24 @@
 package dev.ambershadow.cogfly.elements.profiles;
 
 import com.formdev.flatlaf.FlatLaf;
-import dev.ambershadow.cogfly.elements.ModPanelElement;
 import dev.ambershadow.cogfly.elements.SelectedPageButtonElement;
+import dev.ambershadow.cogfly.loader.ModData;
 import dev.ambershadow.cogfly.util.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class ProfileCardElement extends JPanel {
 
     private float hoverProgress = 0f;
     private Timer hoverTimer;
-    public Color normal = UIManager.getColor("Button.background").darker();
-    public Color hover = UIManager.getColor("Button.pressedBackground");
+    public static Color normal = UIManager.getColor("Button.background").darker();
+    public static Color hover = UIManager.getColor("Button.pressedBackground");
 
     private LookAndFeel lastLaf = null;
 
@@ -36,7 +39,35 @@ public class ProfileCardElement extends JPanel {
         JButton launchButton = new JButton("Launch");
 
         launchButton.addActionListener(_ -> {
-            Utils.launchModdedGame(profile);
+                    List<ModData> outdated = profile.getInstalledMods().stream().filter(ModData::isOutdated).toList();
+                    if (!outdated.isEmpty()) {
+                        List<Object> msg = new ArrayList<>();
+                        msg.add("This profile has outdated mods.");
+                        msg.add("");
+                        for (ModData modData : outdated) {
+                            msg.add("• " + modData.getName());
+                        }
+                        msg.add("");
+                        msg.add("Would you like to update them?");
+                        int result = JOptionPane.showConfirmDialog(
+                                FrameManager.getOrCreate().frame,
+                                msg.toArray(),
+                                "Outdated Mods",
+                                JOptionPane.YES_NO_OPTION,
+                                JOptionPane.QUESTION_MESSAGE);
+                        if (result == JOptionPane.YES_OPTION) {
+                            List<CompletableFuture<Void>> voids = new ArrayList<>();
+                            for (ModData modData : outdated) {
+                                voids.add(CompletableFuture.runAsync(() -> Utils.downloadLatestMod(
+                                        ModData.getMod(modData.getFullName()),
+                                        profile,
+                                        false
+                                )));
+                            }
+                            CompletableFuture.allOf(voids.toArray(CompletableFuture[]::new)).thenRun(() -> Utils.launchModdedGame(profile)).join();
+                        }
+                    } else
+                        Utils.launchModdedGame(profile);
         });
 
         add(iconLabel, BorderLayout.CENTER);
@@ -81,7 +112,7 @@ public class ProfileCardElement extends JPanel {
             c.addMouseListener(mouseHandler);
         }
 
-        Timer colorUpdate = new Timer(100, e -> {
+        Timer colorUpdate = new Timer(100, _ -> {
             normal = UIManager.getColor("Button.background").darker();
             hover = UIManager.getColor("Button.pressedBackground");
             if (lastLaf != UIManager.getLookAndFeel()) {

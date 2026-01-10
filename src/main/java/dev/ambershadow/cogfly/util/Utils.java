@@ -3,6 +3,7 @@ package dev.ambershadow.cogfly.util;
 import com.sun.jna.Pointer;
 import com.sun.jna.WString;
 import dev.ambershadow.cogfly.Cogfly;
+import dev.ambershadow.cogfly.elements.ModPanelElement;
 import dev.ambershadow.cogfly.loader.ModData;
 
 import javax.swing.*;
@@ -24,6 +25,18 @@ import java.util.zip.ZipInputStream;
 
 public class Utils {
 
+    private static final Map<String, String> EXT_TO_UTI = Map.ofEntries(
+            Map.entry("png", "public.image"),
+            Map.entry("jpg", "public.image"),
+            Map.entry("jpeg", "public.image"),
+            Map.entry("gif", "public.image"),
+
+            Map.entry("app", "com.apple.application-bundle"),
+
+            Map.entry("sh", "public.unix-executable"),
+            Map.entry("bin", "public.unix-executable")
+    );
+
     public static Path getSavePath() {
         String home = System.getProperty("user.home");
         return switch (OperatingSystem.current()){
@@ -37,8 +50,7 @@ public class Utils {
     public static String getGameExecutable(){
         return switch (OperatingSystem.current()){
             case WINDOWS -> "Hollow Knight Silksong.exe";
-            case LINUX -> "run_bepinex.sh";
-            case MAC -> "run_bepinex.sh";
+            case LINUX, MAC -> "run_bepinex.sh";
             default -> "";
         };
     }
@@ -62,16 +74,6 @@ public class Utils {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        }
-    }
-
-    public static void openGamePath() {
-        if (!(Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)))
-            return;
-        try {
-            Desktop.getDesktop().browse(Paths.get(Cogfly.settings.gamePath).toUri());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -121,13 +123,23 @@ public class Utils {
         }
     }
 
-    public static void pickFile(Consumer<Path> callback, String... extensions){
+    public static void pickFile(Consumer<Path> callback, String name, String... extensions){
         switch (OperatingSystem.current()){
             case MAC -> {
-                StringJoiner filterJoiner = new StringJoiner(",");
-                for (String extension : extensions)
-                    filterJoiner.add("\"" + extension + "\"");
-                String appleScriptCommand = "POSIX path of (choose file of type {" + filterJoiner + "})";
+                Set<String> utis = new LinkedHashSet<>();
+
+                for (String ext : extensions) {
+                    String uti = EXT_TO_UTI.get(ext.toLowerCase());
+                    if (uti != null)
+                        utis.add(uti);
+                }
+
+                StringJoiner joiner = new StringJoiner(", ");
+                for (String uti : utis)
+                    joiner.add("\"" + uti + "\"");
+
+                String appleScriptCommand =
+                        "POSIX path of (choose file of type {" + joiner + "})";
                 ProcessBuilder pb = new ProcessBuilder(
                         "osascript", "-e", appleScriptCommand
                 );
@@ -135,7 +147,7 @@ public class Utils {
             }
             case WINDOWS -> {
                 for (int i = 0; i < extensions.length; i++) {
-                    extensions[i] = "*." + extensions[i];
+                    extensions[i] = name + "." + extensions[i];
                 }
                 Pointer pointer = Cogfly.FILE_DIALOGS.tinyfd_openFileDialog(
                         "Select File",
@@ -151,7 +163,7 @@ public class Utils {
             }
             case LINUX -> {
                 String patterns = Arrays.stream(extensions)
-                        .map(ext -> "*." + ext)
+                        .map(ext -> name + "." + ext)
                         .collect(Collectors.joining(" "));
                 List<String> zenityCmd = new ArrayList<>();
                 zenityCmd.add("zenity");
@@ -170,7 +182,7 @@ public class Utils {
                 }
 
                 if (path.isEmpty()) {
-                    String val = manualFilePath(false, extensions);
+                    String val = manualFilePath(false, name, extensions);
                     callback.accept(Paths.get(val));
                 }
 
@@ -179,7 +191,7 @@ public class Utils {
         }
     }
 
-    private static String manualFilePath(boolean invalid, String... extensions){
+    private static String manualFilePath(boolean invalid, String name, String... extensions){
         StringJoiner filterJoiner = new StringJoiner(",");
         for (String extension : extensions)
             filterJoiner.add("\"" + extension + "\"");
@@ -187,10 +199,10 @@ public class Utils {
                 (invalid ? "Invalid extension. " : "") + "Please manually enter a file path. Allowed extensions: " + filterJoiner + ". It is highly recommended that you install either Zenity or KDialog for a proper display."
         );
         for (String val : extensions){
-            if (input.endsWith("." + val))
+            if (input.endsWith(name + "." + val))
                 return input;
         }
-        return manualFilePath(true, extensions);
+        return manualFilePath(true, name, extensions);
     }
 
     private static Optional<Path> readValue(ProcessBuilder pb) {
@@ -251,27 +263,29 @@ public class Utils {
             throw new RuntimeException(e);
         }
     }
-
-    public static void removeMod(ModData mod){
-        removeMod(mod, ProfileManager.getCurrentProfile());
+    public static void downloadLatestMod(ModData mod, Profile profile, boolean deps){
+        downloadMod(ModData.getMod(mod), profile, deps);
     }
 
     public static void downloadMod(ModData mod, Profile profile){
+        downloadMod(ModData.getMod(mod), profile, true);
+    }
+    public static void downloadMod(ModData mod, Profile profile, boolean deps){
+        profile.removeMod(mod);
         profile.getInstalledMods().add(mod);
-        for (String dep : mod.getDependencies()) {
-            if (dep.contains("BepInExPack"))
-                continue;
-            ModData m = getModFromDependency(dep);
-            if (m != null && !m.isInstalled())
-                CompletableFuture.runAsync(() -> downloadMod(m, profile));
+        if (deps) {
+            for (String dep : mod.getDependencies()) {
+                if (dep.contains("BepInExPack"))
+                    continue;
+                ModData m = getModFromDependency(dep);
+                if (m != null && !m.isOutdated())
+                    CompletableFuture.runAsync(() -> downloadMod(m, profile));
+            }
         }
         Path path = profile.getPluginsPath()
                 .resolve(mod.getName() + "/");
         downloadAndExtract(mod.getDownloadUrl(), path);
-    }
-
-    public static void downloadMod(ModData mod){
-        downloadMod(mod, ProfileManager.getCurrentProfile());
+        ModPanelElement.redraw();
     }
     private static ModData getModFromDependency(String dependency){
         for (ModData mod : Cogfly.mods) {

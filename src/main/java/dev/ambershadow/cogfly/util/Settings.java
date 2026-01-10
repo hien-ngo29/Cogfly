@@ -63,5 +63,7 @@ public class Settings {
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
+        if (FrameManager.isCreated)
+            FrameManager.getOrCreate().getCurrentPage().reload();
     }
 }

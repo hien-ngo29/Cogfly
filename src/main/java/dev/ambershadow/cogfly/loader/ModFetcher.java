@@ -26,6 +26,9 @@ public class ModFetcher {
     private static final String Url = "https://thunderstore.io/c/hollow-knight-silksong/api/v1/package-listing-index/";
     private static List<JsonObject> fallbackList = new ArrayList<>();
     public static List<JsonObject> getAllMods() {
+
+
+
         List<JsonObject> all = new ArrayList<>();
         String content;
         try (GZIPInputStream gzip = new GZIPInputStream(URL.of(URI.create(Url), null).openStream());
@@ -77,7 +80,7 @@ public class ModFetcher {
         if (files == null)
             return installedMods;
         for (File file : files){
-            File[] innerFiles = plugins.toFile().listFiles();
+            File[] innerFiles = file.listFiles();
             if (innerFiles == null)
                 continue;
             Path manifest = Paths.get(file.getAbsolutePath() + "/manifest.json");
@@ -114,7 +117,12 @@ public class ModFetcher {
                     if (de)
                         matches++;
                     if (matches >= 3) {
-                        installedMods.add(mod);
+                        var installedVersion = get(object, "version_number");
+                        if (installedVersion.isEmpty()) {
+                            installedVersion = mod.getVersionNumber();
+                        }
+                        var md = ModData.getModAtVersion(mod.rawObj, installedVersion);
+                        installedMods.add(md);
                         break;
                     }
                 }

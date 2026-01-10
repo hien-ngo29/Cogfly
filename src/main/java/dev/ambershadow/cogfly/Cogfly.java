@@ -282,7 +282,7 @@ public class Cogfly {
             path.addActionListener(_ -> Utils.pickFile((file) -> {
                 path.setText(file.toFile().getParentFile().getAbsolutePath());
                 confirm.setEnabled(true);
-            }, "exe", "app", "x86_64"));
+            }, "Hollow Knight Silksong", "exe", "app", "x86_64"));
             JPanel confirmPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
             confirmPanel.add(confirm);
             prompt.add(confirmPanel, BorderLayout.SOUTH);
@@ -304,7 +304,7 @@ public class Cogfly {
                 cmds.add("sh");
                 cmds.add(gameAppPath.toString());
                 cmds.add(Paths.get(settings.gamePath).resolve("Hollow Knight Silksong.app").toString());
-            } else if (Utils.OperatingSystem.current().equals(Utils.OperatingSystem.WINDOWS)) {
+            } else if (Utils.OperatingSystem.current().equals(Utils.OperatingSystem.LINUX)) {
                 cmds.add("sh");
                 cmds.add(gameAppPath.toString());
                 cmds.add(Paths.get(settings.gamePath).resolve("Hollow Knight Silksong.x86_64").toString());

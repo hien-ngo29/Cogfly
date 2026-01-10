@@ -2,6 +2,7 @@ package dev.ambershadow.cogfly.elements;
 
 import dev.ambershadow.cogfly.Cogfly;
 import dev.ambershadow.cogfly.loader.ModData;
+import dev.ambershadow.cogfly.util.ProfileManager;
 import dev.ambershadow.cogfly.util.Utils;
 
 import javax.swing.*;
@@ -21,8 +22,18 @@ public class ModPanelElement extends JPanel {
     private final JPanel buttonsPanel;
     private Cogfly.SortingType current;
 
+    private static ModPanelElement panel;
+    public static void redraw(){
+        String query = panel.searchField.getText().toLowerCase();
+        if (query.isEmpty())
+            panel.refreshButtons(Cogfly.getDisplayedMods(panel.current));
+        else
+            panel.filterButtons();
+    }
+
     public ModPanelElement() {
         super(new BorderLayout());
+        panel = this;
         setBorder(BorderFactory.createEmptyBorder());
         setPreferredSize(new Dimension(1100, 525));
         JPanel searchPanel = new JPanel(new BorderLayout(5, 0));
@@ -226,8 +237,8 @@ public class ModPanelElement extends JPanel {
             });
 
             installButton.addActionListener(_ -> {
-                if (mod.isInstalled() && !mod.isOutdated()) Utils.removeMod(mod);
-                else Utils.downloadMod(mod);
+                if (mod.isInstalled() && !mod.isOutdated()) Utils.removeMod(mod, ProfileManager.getCurrentProfile());
+                else Utils.downloadMod(mod, ProfileManager.getCurrentProfile());
                 filterButtons();
             });
 

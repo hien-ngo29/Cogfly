@@ -1,29 +1,29 @@
 package dev.ambershadow.cogfly.util;
 
-import dev.ambershadow.cogfly.Cogfly;
 import dev.ambershadow.cogfly.asset.Assets;
 import dev.ambershadow.cogfly.elements.InfoPageElement;
+import dev.ambershadow.cogfly.elements.SettingsDialog;
+import dev.ambershadow.cogfly.elements.profiles.ProfileCardElement;
 import dev.ambershadow.cogfly.elements.profiles.ProfilesScreenElement;
 import dev.ambershadow.cogfly.elements.SelectedPageButtonElement;
-import dev.ambershadow.cogfly.elements.settings.SettingsPanelElement;
-import dev.ambershadow.cogfly.elements.SidebarElement;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
-import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class FrameManager {
 
     public static FrameManager getOrCreate(){
+        isCreated = true;
         return instance != null ? instance : new FrameManager();
     }
+    public static boolean isCreated;
     private static FrameManager instance;
     public final JFrame frame;
     public final Dimension screenSize;
-
+    public SelectedPageButtonElement profilesPageButton;
     private final JPanel pagePanel;
     public JPanel getPagePanel() {
         return pagePanel;
@@ -52,10 +52,12 @@ public class FrameManager {
         for (CogflyPage value : CogflyPage.values()) {
             pagePanel.add(value.page, value.pageString);
             SelectedPageButtonElement button = new SelectedPageButtonElement(value.pageString);
-            button.addActionListener(e -> setPage(value, button));
+            button.addActionListener(_ -> setPage(value, button));
             topPanel.add(button);
             if (value == CogflyPage.INFO)
                 setPage(CogflyPage.INFO, button);
+            if (value == CogflyPage.PROFILES)
+                profilesPageButton = button;
         }
         Border padding = BorderFactory.createEmptyBorder(0, 0, 5, 0);
         Border color =
@@ -73,6 +75,11 @@ public class FrameManager {
     }
 
     private SelectedPageButtonElement currentPageButton = null;
+
+    private CogflyPage currentPage = null;
+    public CogflyPage getCurrentPage(){
+        return currentPage;
+    }
     public SelectedPageButtonElement getCurrentPageButton() {
         return currentPageButton;
     }
@@ -86,26 +93,30 @@ public class FrameManager {
         // Button.focus
         // Button.hoverBorderColor
         // Button.select
-
-        Color unhoveredColor = UIManager.getColor("Button.background");
-        Color selectedColor = UIManager.getColor("Button.hoverBorderColor");
-        CardLayout layout = (CardLayout) pagePanel.getLayout();
-        layout.show(pagePanel, page.pageString);
-        page.reload();
-        if (currentPageButton != null) {
-            currentPageButton.setBackground(unhoveredColor);
-            currentPageButton.selected = false;
+        if (page.equals(CogflyPage.SETTINGS)){
+            JDialog dialog = new SettingsDialog(frame, "Settings", true);
+            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            dialog.setLocationRelativeTo(null);
+            dialog.setVisible(true);
+        } else {
+            Color unhoveredColor = UIManager.getColor("Button.background");
+            CardLayout layout = (CardLayout) pagePanel.getLayout();
+            layout.show(pagePanel, page.pageString);
+            currentPage = page;
+            page.reload();
+            if (currentPageButton != null) {
+                currentPageButton.setBackground(unhoveredColor);
+                currentPageButton.selected = false;
+            }
+            currentPageButton = button;
+            currentPageButton.selected = true;
+            currentPageButton.setBackground(ProfileCardElement.hover);
         }
-        currentPageButton = button;
-        currentPageButton.selected = true;
-        currentPageButton.setBackground(selectedColor);
     }
     public enum CogflyPage {
         INFO("Info", new InfoPageElement()),
         PROFILES("Profiles", new ProfilesScreenElement()),
-        SETTINGS("Settings", (panel) -> {
-            panel.add(new SettingsPanelElement());
-        })
+        SETTINGS("Settings", (_) -> {})
         ;
 
         private final String pageString;

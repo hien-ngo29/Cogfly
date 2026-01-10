@@ -8,6 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class ProfilesScreenElement extends JPanel implements ReloadablePage {
 
@@ -38,16 +39,19 @@ public class ProfilesScreenElement extends JPanel implements ReloadablePage {
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.QUESTION_MESSAGE);
                 if (result == JOptionPane.YES_OPTION) {
+                    List<CompletableFuture<Void>> voids = new ArrayList<>();
                     for (ModData modData : outdated) {
-                        Utils.downloadMod(
+                        voids.add(CompletableFuture.runAsync(() -> Utils.downloadLatestMod(
                                 ModData.getMod(modData.getFullName()),
-                                profile
-                        );
+                                profile,
+                                false
+                        )));
                     }
+                    CompletableFuture.allOf(voids.toArray(CompletableFuture[]::new)).join();
                 }
             }
             drawProfiles();
-        }), "r2z"));
+        }), "*", "r2z"));
 
         JButton importFromCode = new JButton("Import From Code");
         importFromCode.addActionListener(_ -> {
@@ -69,12 +73,15 @@ public class ProfilesScreenElement extends JPanel implements ReloadablePage {
                             JOptionPane.YES_NO_OPTION,
                             JOptionPane.QUESTION_MESSAGE);
                     if (result == JOptionPane.YES_OPTION) {
+                        List<CompletableFuture<Void>> voids = new ArrayList<>();
                         for (ModData modData : outdated) {
-                            Utils.downloadMod(
+                            voids.add(CompletableFuture.runAsync(() -> Utils.downloadLatestMod(
                                     ModData.getMod(modData.getFullName()),
-                                    profile
-                            );
+                                    profile,
+                                    false
+                            )));
                         }
+                        CompletableFuture.allOf(voids.toArray(CompletableFuture[]::new)).join();
                     }
                 }
                 drawProfiles();
@@ -115,7 +122,7 @@ public class ProfilesScreenElement extends JPanel implements ReloadablePage {
                                 button.getText());
                 drawProfiles();
             });
-            button.addActionListener(_ -> Utils.pickFile((path) -> button.setText(path.toString()), "png", "jpg", "jpeg", "gif"));
+            button.addActionListener(_ -> Utils.pickFile((path) -> button.setText(path.toString()), "*", "png", "jpg", "jpeg", "gif"));
             create.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
             holder.add(name, BorderLayout.WEST);
             holder.add(nameField, BorderLayout.EAST);
@@ -140,17 +147,13 @@ public class ProfilesScreenElement extends JPanel implements ReloadablePage {
     public void drawProfiles(){
         parentPanel.removeAll();
         int maxPerRow = 5;
+        List<Profile> profiles = new ArrayList<>(ProfileManager.profiles);
         if (Cogfly.settings.baseGameEnabled) {
             if (!ProfileManager.profiles.contains(ProfileManager.baseGame)) {
-                List<Profile> profiles = new ArrayList<>();
                 profiles.add(ProfileManager.baseGame);
-                profiles.addAll(ProfileManager.profiles);
-                ProfileManager.profiles = profiles;
             }
-        } else {
-            ProfileManager.profiles.remove(ProfileManager.baseGame);
         }
-        int totalProfiles = ProfileManager.profiles.size();
+        int totalProfiles = profiles.size();
         parentPanel.setLayout(new BoxLayout(parentPanel, BoxLayout.Y_AXIS));
         parentPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
@@ -158,9 +161,9 @@ public class ProfilesScreenElement extends JPanel implements ReloadablePage {
 
         for (int i = 1; i <= totalProfiles; i++) {
             Icon icon = UIManager.getIcon("OptionPane.informationIcon");
-            if (ProfileManager.profiles.get(i-1).getIcon() != null)
-                icon = ProfileManager.profiles.get(i-1).getIcon();
-            rowPanel.add(new ProfileCardElement(ProfileManager.profiles.get(i-1), icon));
+            if (profiles.get(i-1).getIcon() != null)
+                icon = profiles.get(i-1).getIcon();
+            rowPanel.add(new ProfileCardElement(profiles.get(i-1), icon));
 
             if (i % maxPerRow == 0) {
                 parentPanel.add(rowPanel);
