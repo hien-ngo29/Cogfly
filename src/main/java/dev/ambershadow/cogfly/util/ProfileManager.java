@@ -29,11 +29,6 @@ public class ProfileManager {
 
     public static Profile baseGame;
     public static List<Profile> profiles = new ArrayList<>();
-    public static Profile getCurrentProfile() {
-        return current;
-    }
-
-    private static Profile current;
     public static void createProfile(String name, String iconPath){
         Path profile = Paths.get(Cogfly.settings.profileSavePath).resolve(name);
         try {
@@ -111,9 +106,6 @@ public class ProfileManager {
             }
         }
         baseGame = new Profile("Base Game", Paths.get(Cogfly.settings.gamePath), Assets.silksongIcon.getAsIcon());
-    }
-    public static void setProfile(Profile profile){
-        current = profile;
     }
 
     public static void fromFile(Path path, BiConsumer<Profile, ModData[]> outdated){

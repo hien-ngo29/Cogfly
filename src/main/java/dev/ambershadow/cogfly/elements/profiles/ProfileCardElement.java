@@ -97,7 +97,6 @@ public class ProfileCardElement extends JPanel {
                         e.getComponent(), launchButton)) {
                     return;
                 }
-                ProfileManager.setProfile(profile);
                 JPanel pages = FrameManager.getOrCreate().getPagePanel();
                 panel.reload();
                 ((CardLayout)pages.getLayout()).show(pages, profile.getName());

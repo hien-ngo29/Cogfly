@@ -126,7 +126,7 @@ public class ProfileOpenPageCardElement extends JPanel {
         upperPanel.add(openFileLocation);
         upperPanel.add(remove);
         add(upperPanel, BorderLayout.NORTH);
-        add(new ModPanelElement(), BorderLayout.CENTER);
+        add(new ModPanelElement(profile), BorderLayout.CENTER);
     }
 
     public void reload(){

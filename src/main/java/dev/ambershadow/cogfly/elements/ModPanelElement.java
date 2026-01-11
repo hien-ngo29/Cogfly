@@ -2,7 +2,7 @@ package dev.ambershadow.cogfly.elements;
 
 import dev.ambershadow.cogfly.Cogfly;
 import dev.ambershadow.cogfly.loader.ModData;
-import dev.ambershadow.cogfly.util.ProfileManager;
+import dev.ambershadow.cogfly.util.Profile;
 import dev.ambershadow.cogfly.util.Utils;
 
 import javax.swing.*;
@@ -26,13 +26,16 @@ public class ModPanelElement extends JPanel {
     public static void redraw(){
         String query = panel.searchField.getText().toLowerCase();
         if (query.isEmpty())
-            panel.refreshButtons(Cogfly.getDisplayedMods(panel.current));
+            panel.refreshButtons(Cogfly.getDisplayedMods(panel.current, panel.profile));
         else
             panel.filterButtons();
     }
 
-    public ModPanelElement() {
+    private final Profile profile;
+
+    public ModPanelElement(Profile profile) {
         super(new BorderLayout());
+        this.profile = profile;
         panel = this;
         setBorder(BorderFactory.createEmptyBorder());
         setPreferredSize(new Dimension(1100, 525));
@@ -78,7 +81,7 @@ public class ModPanelElement extends JPanel {
             current = sortingType;
             //noinspection DataFlowIssue
             Cogfly.sortList(sortingType, sortingDirection.getSelectedItem().toString());
-            refreshButtons(Cogfly.getDisplayedMods(sortingType));
+            refreshButtons(Cogfly.getDisplayedMods(sortingType, profile));
         });
 
         sortingDirection.addActionListener(_ -> {
@@ -86,7 +89,7 @@ public class ModPanelElement extends JPanel {
             current = sortingType;
             //noinspection DataFlowIssue
             Cogfly.sortList(sortingType, sortingDirection.getSelectedItem().toString());
-            refreshButtons(Cogfly.getDisplayedMods(sortingType));
+            refreshButtons(Cogfly.getDisplayedMods(sortingType, profile));
         });
 
         JScrollPane scrollPane = new JScrollPane(
@@ -101,7 +104,7 @@ public class ModPanelElement extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
 
 
-        refreshButtons(Cogfly.getDisplayedMods(current));
+        refreshButtons(Cogfly.getDisplayedMods(current, profile));
 
         searchField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -147,7 +150,7 @@ public class ModPanelElement extends JPanel {
             toggleButton.setAlignmentX(Component.LEFT_ALIGNMENT);
             toggleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleButton.getPreferredSize().height));
             JButton installButton = new JButton();
-            installButton.setText(mod.isInstalled() ? mod.isOutdated() ? "Update" : "Uninstall" : "Install");
+            installButton.setText(mod.isInstalled(profile) ? mod.isOutdated(profile) ? "Update" : "Uninstall" : "Install");
             installButton.setPreferredSize(new Dimension(100, installButton.getPreferredSize().height));
             installButton.setAlignmentY(Component.CENTER_ALIGNMENT);
 
@@ -237,8 +240,8 @@ public class ModPanelElement extends JPanel {
             });
 
             installButton.addActionListener(_ -> {
-                if (mod.isInstalled() && !mod.isOutdated()) Utils.removeMod(mod, ProfileManager.getCurrentProfile());
-                else Utils.downloadMod(mod, ProfileManager.getCurrentProfile());
+                if (mod.isInstalled(profile) && !mod.isOutdated(profile)) Utils.removeMod(mod, profile);
+                else Utils.downloadMod(mod, profile);
                 filterButtons();
             });
 
@@ -252,7 +255,7 @@ public class ModPanelElement extends JPanel {
     private void filterButtons() {
         String query = searchField.getText().toLowerCase();
         List<ModData> filtered = new ArrayList<>();
-        for (ModData mod : Cogfly.getDisplayedMods(current)) {
+        for (ModData mod : Cogfly.getDisplayedMods(current, profile)) {
             if (mod.getName().replaceAll(" ", "")
                     .toLowerCase().contains(query.replaceAll(" ", ""))) {
                 filtered.add(mod);

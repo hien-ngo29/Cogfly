@@ -5,7 +5,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.ambershadow.cogfly.Cogfly;
 import dev.ambershadow.cogfly.util.Profile;
-import dev.ambershadow.cogfly.util.ProfileManager;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -139,23 +138,11 @@ public class ModData {
     public URI getWebsiteUrl(){
         return websiteUrl;
     }
-    public boolean isInstalled(){
-        return ProfileManager.getCurrentProfile().getInstalledMods()
-                .stream().anyMatch(m ->
-                m.getFullName().equals(getFullName()));
-    }
 
     public boolean isInstalled(Profile profile){
         return profile.getInstalledMods()
                 .stream().anyMatch(m ->
                         m.getFullName().equals(getFullName()));
-    }
-    public boolean isOutdated(){
-        if (!isInstalled())
-            return false;
-        JsonObject version = rawObj.get("versions").getAsJsonArray().get(0).getAsJsonObject();
-        return !(version.get("version_number").getAsString()
-                .equals(ProfileManager.getCurrentProfile().getInstalledVersion(this)));
     }
 
     public boolean isOutdated(Profile profile){

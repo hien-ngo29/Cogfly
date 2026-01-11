@@ -102,11 +102,6 @@ public class Cogfly {
                 ));
                 Cogfly.mods = data;
                 ProfileManager.loadProfiles();
-                if (ProfileManager.profiles.isEmpty()){
-                    ProfileManager.setProfile(new Profile("/", Paths.get("/")));
-                } else {
-                    ProfileManager.setProfile(ProfileManager.profiles.getFirst());
-                }
 
         UIManager.put("TextComponent.arc", 5);
         FrameManager.getOrCreate().frame.setVisible(true);
@@ -152,9 +147,9 @@ public class Cogfly {
         }
     }
 
-    public static List<ModData> getDisplayedMods(SortingType type){
+    public static List<ModData> getDisplayedMods(SortingType type, Profile profile){
         if (type == SortingType.INSTALLED)
-            return ProfileManager.getCurrentProfile().getInstalledMods();
+            return profile.getInstalledMods();
         return mods;
     }
 
