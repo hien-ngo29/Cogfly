@@ -72,7 +72,7 @@ jobs:
           jpackage `
             --input build/libs `
             --main-jar cogfly-1.0.2.jar `
-            --name Cogfly-Windows `
+            --name Cogfly-Windows_amd64 `
             --type msi `
             --vendor "Ambershadow" `
             --icon ./icons/icon.ico `
@@ -86,7 +86,7 @@ jobs:
           jpackage `
             --input build/libs `
             --main-jar cogfly-1.0.2.jar `
-            --name Cogfly-Windows `
+            --name Cogfly-Windows_amd64 `
             --type exe `
             --vendor "Ambershadow" `
             --icon ./icons/icon.ico `
@@ -101,7 +101,7 @@ jobs:
           jpackage \
             --input build/libs \
             --main-jar cogfly-1.0.2.jar \
-            --name Cogfly-Linux \
+            --name Cogfly-Linux_amd64 \
             --type deb \
             --vendor "Ambershadow" \
             --icon ./icons/icon.png \
@@ -116,26 +116,26 @@ jobs:
           jpackage \
             --input build/libs \
             --main-jar cogfly-1.0.2.jar \
-            --name Cogfly-Linux \
+            --name Cogfly-Linux_amd64 \
             --type app-image \
             --vendor "Ambershadow" \
             --icon ./icons/icon.png \
             --app-version 1.0.2 \
             --dest output/appimage
-          cp ./icons/icon.png output/appimage/Cogfly/
-          cp ./Cogfly.desktop output/appimage/Cogfly/
-          cat > output/appimage/Cogfly/AppRun << 'EOF'
+          cp ./icons/icon.png output/appimage/Cogfly-Linux_amd64/
+          cp ./Cogfly.desktop output/appimage/Cogfly-Linux_amd64/
+          cat > output/appimage/Cogfly-Linux_amd64/AppRun << 'EOF'
           #!/bin/sh
           HERE="$(dirname "$(readlink -f "$0")")"
-          exec "$HERE/bin/Cogfly" "$@"
+          exec "$HERE/bin/Cogfly-Linux_amd64" "$@"
           EOF
-          chmod +x output/appimage/Cogfly/AppRun
+          chmod +x output/appimage/Cogfly-Linux_amd64/AppRun
           sudo apt update
           wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
           chmod +x appimagetool
-          ls -l output/appimage/Cogfly
+          ls -l output/appimage/Cogfly-Linux_amd64
           export APPIMAGE_EXTRACT_AND_RUN=1
-          ./appimagetool output/appimage/Cogfly output/${{ runner.os }}-${{ matrix.arch }}/Cogfly.AppImage
+          ./appimagetool output/appimage/Cogfly-Linux_amd64 output/${{ runner.os }}-${{ matrix.arch }}/Cogfly-Linux_amd64.AppImage
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
