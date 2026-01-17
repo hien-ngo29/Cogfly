@@ -156,9 +156,7 @@ public class ModData {
     @Override
     public boolean equals(Object o){
         return o instanceof ModData md &&
-                md.getName().equals(getName())
-                && md.getAuthor().equals(getAuthor())
-                && md.getDescription().equals(getDescription())      && md.getFullName().equals(getFullName())
+                equalsIgnoreVersion(md)
                 && md.getVersionNumber().equals(getVersionNumber());
     }
 
