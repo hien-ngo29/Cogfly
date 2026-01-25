@@ -265,30 +265,22 @@ public class Utils {
         } catch (IOException ignored){}
     }
 
-    public static void removeMod(ModData mod, Profile profile){
-        Cogfly.logger.info("Attempting to remove {} at version {} for profile {}.", mod.getFullName(), mod.getVersionNumber(), profile.getName());
+    public static void removeMod(ModData mod, Profile profile) {
+        Cogfly.logger.info("Attempting to remove {} at version {} for profile {}.",
+                mod.getFullName(), mod.getVersionNumber(), profile.getName());
+
         profile.getInstalledMods().remove(mod);
-        Path path = profile.getPluginsPath()
-                .resolve(mod.getFullName());
-        if (!path.toFile().exists()) {
-            Cogfly.logger.warn("Could not find a folder at {} to remove this mod!", path);
-            path = profile.getPluginsPath().resolve(mod.getName());
+
+        List<Path> toDelete = new ArrayList<>();
+
+        toDelete.addAll(collectMatchingFolders(profile.getPluginsPath(), mod.getFullName(), mod.getName()));
+        toDelete.addAll(collectMatchingFolders(profile.getBepInExPath().resolve("patchers"), mod.getFullName(), mod.getName()));
+        toDelete.addAll(collectMatchingFolders(profile.getBepInExPath().resolve("core"), mod.getFullName(), mod.getName()));
+        toDelete.addAll(collectMatchingFolders(profile.getBepInExPath().resolve("monomod"), mod.getFullName(), mod.getName()));
+
+        for (Path path : toDelete) {
+            deleteFolder(path);
         }
-        if (!path.toFile().exists()) {
-            Cogfly.logger.warn("Could not find a folder at {} to remove this mod!", path);
-            Cogfly.logger.warn("Could not find any folder to remove this mod.");
-            return;
-        }
-        deleteFolder(path);
-        Path patcher = profile.getBepInExPath().resolve("patchers").resolve(mod.getFullName());
-        if (patcher.toFile().exists())
-            deleteFolder(patcher);
-        Path core = profile.getBepInExPath().resolve("core").resolve(mod.getFullName());
-        if (core.toFile().exists())
-            deleteFolder(core);
-        Path monomod = profile.getBepInExPath().resolve("monomod").resolve(mod.getFullName());
-        if (monomod.toFile().exists())
-            deleteFolder(monomod);
 
         ModPanelElement.redraw(profile);
     }
@@ -335,8 +327,11 @@ public class Utils {
                     switch (root) {
                         case "monomod", "patchers", "plugins", "core" -> {
                             targetBase = bepinexRoot.resolve(root).resolve(mod.getFullName());
-                            relativeInsideMod = zipPath.subpath(1, zipPath.getNameCount());
-                        }
+                            if (zipPath.getNameCount() > 1) {
+                                relativeInsideMod = zipPath.subpath(1, zipPath.getNameCount());
+                            } else {
+                                continue;
+                            }                        }
                         default -> {
                             targetBase = bepinexRoot.resolve("plugins").resolve(mod.getFullName());
                             relativeInsideMod = zipPath;
@@ -438,6 +433,30 @@ public class Utils {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static List<Path> collectMatchingFolders(Path dir, String... prefixes) {
+        List<Path> matches = new ArrayList<>();
+
+        if (!Files.isDirectory(dir)) return matches;
+
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
+            for (Path entry : stream) {
+                if (!Files.isDirectory(entry)) continue;
+
+                String name = entry.getFileName().toString();
+                for (String prefix : prefixes) {
+                    if (name.startsWith(prefix)) {
+                        matches.add(entry);
+                        break;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            Cogfly.logger.error("Failed scanning directory {}: {}", dir, e.getMessage());
+        }
+
+        return matches;
     }
     public enum OperatingSystem {
         WINDOWS, MAC, LINUX, OTHER;

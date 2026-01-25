@@ -26,8 +26,6 @@ public class ModPanelElement extends JPanel {
         if (panels.containsKey(profile))
             panels.get(profile).redrawPanel();
     }
-
-
     private final Profile profile;
     private final JTextField searchField;
     private final JPanel buttonsPanel;
@@ -155,6 +153,7 @@ public class ModPanelElement extends JPanel {
             installButton.setText(mod.isInstalled(profile) ? mod.isOutdated(profile) ? "Update" : "Uninstall" : "Install");
             installButton.setPreferredSize(new Dimension(100, installButton.getPreferredSize().height));
             installButton.setAlignmentY(Component.CENTER_ALIGNMENT);
+
 
             rowPanel.add(toggleButton);
             rowPanel.add(Box.createHorizontalGlue());
