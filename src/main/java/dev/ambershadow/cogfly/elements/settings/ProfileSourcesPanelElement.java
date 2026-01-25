@@ -14,6 +14,7 @@ public class ProfileSourcesPanelElement extends JPanel {
             dialog.setModal(true);
             dialog.setVisible(true);
         });
+        button.setToolTipText("Add new sources to pull profiles from. New profiles will not be saved in these locations.");
         button.setPreferredSize(new Dimension(625, button.getPreferredSize().height));
         add(button);
     }

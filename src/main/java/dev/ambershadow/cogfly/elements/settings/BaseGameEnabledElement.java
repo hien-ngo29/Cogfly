@@ -16,6 +16,7 @@ public class BaseGameEnabledElement extends SettingsElement {
             parent.updateBaseGameModding(enabled);
         });
         checkBox.setSelected(Cogfly.settings.baseGameEnabled);
+        label.setToolTipText("If enabled, this displays a new profile for installing mods directly to your game directory. This is primarily for mod developers.");
         add(label, checkBox);
     }
 }

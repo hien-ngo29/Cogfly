@@ -16,6 +16,7 @@ public class AutoNameSpacingElement extends SettingsElement {
             parent.updateModNameSpacing(enabled);
         });
         checkBox.setSelected(Cogfly.settings.modNameSpaces);
+        label.setToolTipText("Whether to add spaces to the names of mods in the mod list based on capetalization, ie. KnightInSilksong -> Knight In Silksong.");
         add(label, checkBox);
     }
 }

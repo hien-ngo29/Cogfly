@@ -15,6 +15,7 @@ public class PerProfileGamePathsElement extends SettingsElement {
             parent.updatePerProfilePaths(enabled);
         });
         checkBox.setSelected(Cogfly.settings.profileSpecificPaths);
+        label.setToolTipText("Allows you to point specific profiles to different game installations. This feature is primarily for speedrunners.");
         add(label, checkBox);
     }
 }

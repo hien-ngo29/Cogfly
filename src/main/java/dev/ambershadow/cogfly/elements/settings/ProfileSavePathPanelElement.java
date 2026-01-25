@@ -18,7 +18,7 @@ public class ProfileSavePathPanelElement extends SettingsElement {
             button.setText(p);
             parent.updateProfileSavePath(p);
         }));
-
+        label.setToolTipText("The location to save newly created profiles.");
         add(label, button);
     }
 }

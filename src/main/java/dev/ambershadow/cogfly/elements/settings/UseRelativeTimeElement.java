@@ -16,6 +16,7 @@ public class UseRelativeTimeElement extends SettingsElement {
             parent.updateRelativeTime(enabled);
         });
         checkBox.setSelected(Cogfly.settings.useRelativeTime);
+        label.setToolTipText("Changes \"Date Created\" and \"Date Updated\" values in mod descriptions to use relative time.");
         add(label, checkBox);
     }
 }

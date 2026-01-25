@@ -21,7 +21,7 @@ public class ScrollingIncrementElement extends SettingsElement {
             int n = (int)box.getSelectedItem();
             parent.updateScrollIncrement(n);
         });
-
+        label.setToolTipText("The amount of pixels that one notch on your scroll wheel moves the bar down. Alternatively, scroll speed.");
         add(label, box);
     }
 }
