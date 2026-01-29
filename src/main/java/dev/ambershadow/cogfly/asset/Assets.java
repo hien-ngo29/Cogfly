@@ -8,6 +8,6 @@ public class Assets {
 
     public static CogflyAsset icon = getAsset("icon.png");
     public static CogflyAsset openSaves = getAsset("openSaves.png");
-    public static CogflyAsset copy = getAsset("copyLog.png");
+    public static CogflyAsset centralIcon = getAsset("cogfly_art.png");
     public static CogflyAsset silksongIcon = getAsset("silksong64x64.png");
 }
