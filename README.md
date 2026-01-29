@@ -49,5 +49,4 @@ Please submit actual information about the bug experienced. Please also submit y
 
 - Art
     - [Jngo](https://github.com/jngo102) - Main icon on the info page
-    - [Team Cherry](https://www.teamcherry.com.au/) - The Cogfly icon used for the window
 </details>
