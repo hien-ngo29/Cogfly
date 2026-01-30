@@ -24,9 +24,12 @@ import java.util.concurrent.CompletableFuture;
 
 public class Cogfly {
 
-    public static URL getResource(String path){
-        return Cogfly.class.getResource(path);
+    public static URL getResource(String path) {
+        URL url = Cogfly.class.getResource(path);
+        if (url == null) throw new IllegalStateException("Resource not found: " + path);
+        return url;
     }
+
     public static Logger logger;
     public static List<String> excludedMods = new ArrayList<>(){
         {

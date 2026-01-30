@@ -31,18 +31,26 @@ public class InfoPageElement extends JPanel {
     }
 
     public JScrollPane createLinks(){
-        Dimension size = new Dimension(175, 150);
+        Dimension size = new Dimension(140, 115);
         JPanel panel = new JPanel();
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JButton github = new JButton(Assets.github.getAsScaledIcon(147, 144));
+        JButton github = new JButton("Source Code", Assets.github.getAsScaledIcon(0.25f));
+        github.setFont(new Font("Arial", Font.PLAIN, 14));
+        github.setHorizontalTextPosition(SwingConstants.CENTER);
+        github.setVerticalTextPosition(SwingConstants.TOP);
+        github.setIconTextGap(10);
         github.setPreferredSize(size);
         github.setToolTipText("https://github.com/nix-main/Cogfly");
         github.addActionListener(_ -> Utils.openURI(URI.create("https://github.com/nix-main/Cogfly")));
         HoverLerp.install(github, () -> ProfileCardElement.normal, () -> ProfileCardElement.hover);
         panel.add(github);
 
-        JButton discord = new JButton(Assets.discord.getAsScaledIcon(132, 100));
+        JButton discord = new JButton("Modding Discord", Assets.discord.getAsScaledIcon(0.1666666f));
+        discord.setFont(new Font("Arial", Font.PLAIN, 14));
+        discord.setHorizontalTextPosition(SwingConstants.CENTER);
+        discord.setVerticalTextPosition(SwingConstants.TOP);
+        discord.setIconTextGap(14);
         discord.setPreferredSize(size);
         discord.setToolTipText("https://discord.gg/VDsg3HmWuB");
         discord.addActionListener(_ -> Utils.openURI(URI.create("https://discord.gg/VDsg3HmWuB")));

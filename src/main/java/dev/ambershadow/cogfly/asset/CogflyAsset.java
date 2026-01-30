@@ -21,6 +21,14 @@ public record CogflyAsset(URL url) {
         return new ImageIcon(scaled);
     }
 
+    public Icon getAsScaledIcon(float multiplier){
+        ImageIcon icon = new ImageIcon(url);
+        Image img = icon.getImage();
+        Image scaled = img.getScaledInstance(
+                (int)(img.getWidth(icon.getImageObserver())*multiplier), (int)(img.getHeight(icon.getImageObserver())*multiplier), Image.SCALE_SMOOTH);
+        return new ImageIcon(scaled);
+    }
+
     public Icon getAsIconWithColor(Color color){
         Icon icon = getAsIcon();
         int w = icon.getIconWidth();
