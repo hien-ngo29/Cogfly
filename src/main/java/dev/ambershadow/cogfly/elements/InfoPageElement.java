@@ -1,22 +1,28 @@
 package dev.ambershadow.cogfly.elements;
 
+import com.kitfox.svg.app.beans.SVGIcon;
 import dev.ambershadow.cogfly.Cogfly;
 import dev.ambershadow.cogfly.asset.Assets;
 import dev.ambershadow.cogfly.elements.profiles.ProfileCardElement;
 import dev.ambershadow.cogfly.util.HoverLerp;
+import dev.ambershadow.cogfly.util.ReloadablePage;
 import dev.ambershadow.cogfly.util.Utils;
 
 import javax.swing.*;
 import java.awt.*;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Paths;
 
-public class InfoPageElement extends JPanel {
+public class InfoPageElement extends JPanel implements ReloadablePage {
 
+
+    private JButton github;
+    private JButton discord;
     public InfoPageElement() {
         setLayout(new BorderLayout());
 
-        JLabel image = new JLabel(Assets.centralIcon.getAsScaledIcon(549, 336));
+        JLabel image = new JLabel(Assets.centralIcon.getAsScaledIcon(0.333333f));
         image.setHorizontalAlignment(SwingConstants.CENTER);
         add(image, BorderLayout.NORTH);
         add(createButtons(), BorderLayout.CENTER);
@@ -31,11 +37,19 @@ public class InfoPageElement extends JPanel {
     }
 
     public JScrollPane createLinks(){
-        Dimension size = new Dimension(140, 115);
+        Dimension size = new Dimension(150, 125);
         JPanel panel = new JPanel();
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JButton github = new JButton("Source Code", Assets.github.getAsScaledIcon(0.25f));
+        SVGIcon icon = new SVGIcon();
+        try {
+            icon.setSvgURI(Assets.github.url().toURI());
+        } catch (URISyntaxException e){
+            throw new RuntimeException(e);
+        }
+        icon.setPreferredSize(new Dimension(90, 0));
+        icon.setAutosize(SVGIcon.AUTOSIZE_HORIZ);
+        github = new JButton("Source Code", icon);
         github.setFont(new Font("Arial", Font.PLAIN, 14));
         github.setHorizontalTextPosition(SwingConstants.CENTER);
         github.setVerticalTextPosition(SwingConstants.TOP);
@@ -46,7 +60,16 @@ public class InfoPageElement extends JPanel {
         HoverLerp.install(github, () -> ProfileCardElement.normal, () -> ProfileCardElement.hover);
         panel.add(github);
 
-        JButton discord = new JButton("Modding Discord", Assets.discord.getAsScaledIcon(0.1666666f));
+        SVGIcon icon2 = new SVGIcon();
+        try {
+            icon2.setSvgURI(Assets.discord.url().toURI());
+        } catch (URISyntaxException e){
+            throw new RuntimeException(e);
+        }
+        icon2.setPreferredSize(new Dimension(100, 0));
+        icon2.setAutosize(SVGIcon.AUTOSIZE_HORIZ);
+        discord = new JButton("Modding Discord", icon2);
+        discord.setForeground(Color.WHITE);
         discord.setFont(new Font("Arial", Font.PLAIN, 14));
         discord.setHorizontalTextPosition(SwingConstants.CENTER);
         discord.setVerticalTextPosition(SwingConstants.TOP);
@@ -100,5 +123,11 @@ public class InfoPageElement extends JPanel {
         );
 
         return buttons;
+    }
+
+    @Override
+    public void reload() {
+        discord.setBackground(ProfileCardElement.normal);
+        github.setBackground(ProfileCardElement.normal);
     }
 }

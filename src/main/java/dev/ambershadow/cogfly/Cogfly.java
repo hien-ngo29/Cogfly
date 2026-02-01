@@ -1,6 +1,7 @@
 package dev.ambershadow.cogfly;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.sun.jna.Native;
 import dev.ambershadow.cogfly.elements.profiles.ProfilesScreenElement;
 import dev.ambershadow.cogfly.loader.ModData;
@@ -14,15 +15,22 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.*;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 public class Cogfly {
+
+    public static String version = "Beta-1.0.3";
 
     public static URL getResource(String path) {
         URL url = Cogfly.class.getResource(path);
@@ -126,7 +134,7 @@ public class Cogfly {
         Path bepindll = path.resolve("BepInEx/core/BepInEx.dll");
         if (Files.exists(bepindll))
             return;
-        if (Files.exists(path))
+        if (!Files.exists(path))
             return;
         Utils.downloadAndExtract(packUrlNoConsole, path);
     }
@@ -278,6 +286,39 @@ public class Cogfly {
                         "Congratulations on creating your first profile! Click on its icon to manage it and install mods!",
                         "Profile Onboarding",
                         JOptionPane.INFORMATION_MESSAGE));
+            }
+        }
+
+        String latestVer = ((Supplier<String>)() -> {
+            try (HttpClient client = HttpClient.newHttpClient()){
+                HttpRequest request = HttpRequest.newBuilder()
+                        .GET()
+                        .uri(URI.create("https://api.github.com/repos/nix-main/Cogfly/releases"))
+                        .build();
+                try {
+                    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                    return JsonParser.parseString(response.body()).getAsJsonArray().get(0).getAsJsonObject().get("tag_name").getAsString();
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }).get();
+        if (!version.equals(latestVer)) {
+            int update = JOptionPane.showOptionDialog(
+                    FrameManager.getOrCreate().frame,
+                    String.format("There is an update available! You are using version %s. The latest version is %s.", version, latestVer),
+                    "Update",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE,
+                    null,
+                    new Object[]{
+                            "Open Release Page",
+                            "Close"
+                    },
+                    null
+            );
+            if (update == JOptionPane.YES_OPTION) {
+                Utils.openURI(URI.create("https://github.com/nix-main/Cogfly/releases/latest"));
             }
         }
     }
