@@ -10,6 +10,6 @@ public class Assets {
     public static CogflyAsset openSaves = getAsset("openSaves.png");
     public static CogflyAsset centralIcon = getAsset("cogfly_art.png");
     public static CogflyAsset discord = getAsset("Discord-Symbol-White.svg");
-    public static CogflyAsset github = getAsset("Github_Invertocat_White.svg");
+    public static CogflyAsset github = getAsset("GitHub_Invertocat_White.svg");
     public static CogflyAsset silksongIcon = getAsset("silksong64x64.png");
 }
