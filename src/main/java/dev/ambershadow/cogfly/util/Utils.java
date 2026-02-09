@@ -57,7 +57,13 @@ public class Utils {
 
 
     public static void openPath(Path path){
-        openURI(path.toUri());
+        if (!(Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)))
+            return;
+        try {
+            Desktop.getDesktop().open(path.toFile());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void openURI(URI uri){
