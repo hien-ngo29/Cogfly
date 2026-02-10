@@ -51,6 +51,8 @@ Please submit actual information about the bug experienced. Please also submit y
 - Art
     - [Jngo](https://github.com/jngo102) - Main icon on the info page
 - Contributions
-    - [Hien Ngo](https://github.com/hien-ngo29) - RPM build in the workflow
+    - [Hien Ngo](https://github.com/hien-ngo29) 
+      - RPM build in the workflow
+      - Nicer info page icons
     - [FabBeyond](https://github.com/FabBeyond) - Profile icon switching
 </details>
