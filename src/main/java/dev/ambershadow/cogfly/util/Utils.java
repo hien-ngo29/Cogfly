@@ -380,43 +380,9 @@ public class Utils {
     }
 
     public static void copyFile(Path path){
-
-        List<String> command = new ArrayList<>();
-        String file = path.toAbsolutePath().toString();
-
-        switch (OperatingSystem.current()) {
-            case WINDOWS:
-                command.add("powershell.exe");
-                command.add("Set-Clipboard");
-                command.add("-Path");
-                command.add("'" + file + "'");
-                break;
-            case MAC:
-                command.add("osascript");
-                command.add("-e");
-                command.add("set the clipboard to (POSIX file \"" + file + "\")");
-                break;
-            case LINUX:
-                String[][] cmds = {
-                        {"bash", "-c", "echo \"" + file + "\" | xclip -selection clipboard -t text/uri-list"},
-                        {"bash", "-c", "echo \"" + file + "\" | xsel --clipboard --input"},
-                        {"bash", "-c", "echo \"" + file + "\" | wl-copy"}
-                };
-                for (String[] cmd : cmds) {
-                    ProcessBuilder builder = new ProcessBuilder(cmd);
-                    try {
-                        builder.inheritIO().start().waitFor();
-                        return;
-                    } catch (Exception ignored) {}
-                }
-                break;
-                // this doesn't really work...at all, and is kind of a broken impl to begin with. I need to fix it.
-        }
-
-        ProcessBuilder pb = new ProcessBuilder(command);
         try {
-            pb.inheritIO().start().waitFor();
-        } catch (IOException | InterruptedException e) {
+            copyString(Files.readString(path));
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -464,10 +430,28 @@ public class Utils {
                 }
             }
         } catch (IOException e) {
-            Cogfly.logger.error("Failed scanning directory {}: {}", dir, e.getMessage());
+            throw new RuntimeException(e);
         }
 
         return matches;
+    }
+
+    public static void throwNonFatalError(Throwable e){
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        String stackTrace = sw.toString();
+        int val = JOptionPane.showOptionDialog(
+                FrameManager.getOrCreate().frame,
+                stackTrace,
+                "An error has occurred!",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.ERROR_MESSAGE,
+                null,
+                new Object[]{"Copy To Clipboard", "Close"},
+                0);
+        if (val == JOptionPane.YES_OPTION) {
+            copyString(stackTrace);
+        }
     }
     public enum OperatingSystem {
         WINDOWS, MAC, LINUX, OTHER;

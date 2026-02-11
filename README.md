@@ -6,7 +6,6 @@
 A cross-platform mod manager for [Hollow Knight: Silksong](https://hollowknightsilksong.com/). Currently only supports English.
 
 ## Usage
-- Requires an internet connection
 - Download the latest version [here](https://github.com/nix-main/Cogfly/releases/latest)
   - Pick your installation based on operating system and architecture
     - Windows: MSI or EXE (does not matter, both are **installers**, running them will not open the app)

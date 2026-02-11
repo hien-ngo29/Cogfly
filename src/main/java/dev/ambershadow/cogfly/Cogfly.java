@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.URL;
 import java.net.http.HttpClient;
@@ -44,6 +45,7 @@ public class Cogfly {
             add("ebkr-r2modman");
             add("BepInEx-BepInExPack_Silksong");
             add("Kesomannen-GaleModManager");
+            add("ambershadow-Cogfly");
         }
     };
     public static List<ModData> mods = null;
@@ -67,7 +69,10 @@ public class Cogfly {
         logger = LoggerFactory.getLogger(Cogfly.class);
         logger.info("Initializing...");
 
-        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> logger.error("Uncaught exception in thread {}", thread.getName(), throwable));
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            logger.error("Uncaught exception in thread {}", thread.getName(), throwable);
+            Utils.throwNonFatalError(throwable);
+        });
 
         if (Utils.OperatingSystem.current() == Utils.OperatingSystem.WINDOWS){
             try {
@@ -299,6 +304,8 @@ public class Cogfly {
                     HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                     return JsonParser.parseString(response.body()).getAsJsonArray().get(0).getAsJsonObject().get("tag_name").getAsString();
                 } catch (IOException | InterruptedException e) {
+                    if (e instanceof ConnectException)
+                        return version;
                     throw new RuntimeException(e);
                 }
             }

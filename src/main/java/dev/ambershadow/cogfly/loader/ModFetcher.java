@@ -26,9 +26,6 @@ public class ModFetcher {
     private static final String Url = "https://thunderstore.io/c/hollow-knight-silksong/api/v1/package-listing-index/";
     private static List<JsonObject> fallbackList = new ArrayList<>();
     public static List<JsonObject> getAllMods() {
-
-
-
         List<JsonObject> all = new ArrayList<>();
         String content;
         try (GZIPInputStream gzip = new GZIPInputStream(URL.of(URI.create(Url), null).openStream());
@@ -44,21 +41,21 @@ public class ModFetcher {
             JPanel panel = new JPanel(new BorderLayout());
             panel.setAlignmentX(Component.CENTER_ALIGNMENT);
             JLabel a = new JLabel("An UnknownHostException was thrown during mod discovery.");
-            JLabel b = new JLabel("Please check your internet connection and try again.");
+            JLabel b = new JLabel("Mods will not show.");
             a.setHorizontalAlignment(SwingConstants.CENTER);
             b.setHorizontalAlignment(SwingConstants.CENTER);
             panel.add(a, BorderLayout.NORTH);
             panel.add(b, BorderLayout.CENTER);
-            JButton button = new JButton("Exit");
+            JButton button = new JButton("Continue");
+            button.addActionListener(_ -> dialog.dispose());
             dialog.add(button);
-            button.addActionListener(_ -> System.exit(68));
             dialog.add(panel, BorderLayout.NORTH);
 
             dialog.setResizable(false);
             dialog.setSize(350, 100);
             dialog.setVisible(true);
 
-            throw new RuntimeException(unknown);
+            return new ArrayList<>();
         }
         catch (IOException e) {
             return fallbackList;
