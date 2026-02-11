@@ -439,7 +439,17 @@ public class Utils {
     public static void throwNonFatalError(Throwable e){
         StringWriter sw = new StringWriter();
         e.printStackTrace(new PrintWriter(sw));
-        String stackTrace = sw.toString();
+        String[] lines = sw.toString().split("\\R");
+        int maxLines = 15;
+
+        String stackTrace = String.join(
+                System.lineSeparator(),
+                Arrays.copyOfRange(lines, 0, Math.min(lines.length, maxLines))
+        );
+        if (lines.length > maxLines) {
+            stackTrace += System.lineSeparator()
+                    + "... (" + (lines.length - maxLines) + " more lines)";
+        }
         int val = JOptionPane.showOptionDialog(
                 FrameManager.getOrCreate().frame,
                 stackTrace,
@@ -450,7 +460,7 @@ public class Utils {
                 new Object[]{"Copy To Clipboard", "Close"},
                 0);
         if (val == JOptionPane.YES_OPTION) {
-            copyString(stackTrace);
+            copyString(sw.toString());
         }
     }
     public enum OperatingSystem {
